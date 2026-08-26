@@ -56,7 +56,7 @@
   </distributionManagement>
 
   <properties>
-    <project.version>0.7.0-SNAPSHOT</project.version>
+    <project.version>1.0.0-SNAPSHOT</project.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -79,7 +79,7 @@
     the link to metrics.dropwizard.io in docs/monitoring.md.
     -->
     <codahale.metrics.version>4.2.25</codahale.metrics.version>
-    <commons-lang3.version>3.17.0</commons-lang3.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
     <commons-io.version>2.17.0</commons-io.version>
     <commons-crypto.version>1.0.0</commons-crypto.version>
     <!-- last version to support compilation in java 8. See https://errorprone.info/docs/installation#:~:text=you%20are%20using.-,JDK%208,-Error%20Prone%202.10.0 -->
@@ -96,10 +96,10 @@
     <lz4-java.version>1.10.4</lz4-java.version>
     <mockito.version>4.11.0</mockito.version>
     <mockito-scalatest.version>1.17.14</mockito-scalatest.version>
-    <netty.version>4.2.10.Final</netty.version>
+    <netty.version>4.2.17.Final</netty.version>
     <bouncycastle.version>1.77</bouncycastle.version>
     <protobuf.version>3.25.5</protobuf.version>
-    <ratis.version>3.2.2</ratis.version>
+    <ratis.version>3.3.0</ratis.version>
     <scalatest.version>3.2.16</scalatest.version>
     <slf4j.version>1.7.36</slf4j.version>
     <roaringbitmap.version>1.0.6</roaringbitmap.version>
@@ -280,6 +280,11 @@
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-jvm</artifactId>
+        <version>${codahale.metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jmx</artifactId>
         <version>${codahale.metrics.version}</version>
       </dependency>
       <dependency>
@@ -475,6 +480,25 @@
           <exclusion>
             <groupId>org.jctools</groupId>
             <artifactId>jctools-core</artifactId>
+          </exclusion>
+          <!-- Netty 4.2 merged the QUIC/HTTP3 stack into netty-all:
+               netty-codec-http3 -> netty-codec-classes-quic -> netty-codec-native-quic.
+               netty-codec-native-quic ships a libnetty_quiche42_* native library per
+               platform classifier (linux/osx/windows x86_64/aarch_64), ~29MB
+               uncompressed, which every *-shaded module pulls in via
+               <include>io.netty:*</include> in the shade config. Celeborn only uses
+               Netty TCP RPC and has no HTTP/3 code path, so exclude the whole trio. -->
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http3</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-classes-quic</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-native-quic</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -1042,14 +1066,14 @@
             </includes>
             <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
             <argLine>${argLine} -ea -Xmx4g -Xss4m -XX:MaxMetaspaceSize=2g -XX:ReservedCodeCacheSize=128m ${extraJavaTestArgs}</argLine>
-            <systemProperties>
+            <systemPropertyVariables>
               <log4j.configuration>file:src/test/resources/log4j.properties</log4j.configuration>
               <log4j2.configurationFile>src/test/resources/log4j2-test.xml</log4j2.configurationFile>
               <java.io.tmpdir>${project.build.directory}/tmp</java.io.tmpdir>
               <spark.driver.memory>8g</spark.driver.memory>
               <spark.shuffle.sort.io.plugin.class>${spark.shuffle.plugin.class}</spark.shuffle.sort.io.plugin.class>
               <spark.ui.enabled>false</spark.ui.enabled>
-            </systemProperties>
+            </systemPropertyVariables>
             <environmentVariables>
               <CELEBORN_LOCAL_HOSTNAME>localhost</CELEBORN_LOCAL_HOSTNAME>
               <FLINK_VERSION>${flink.version}</FLINK_VERSION>
@@ -1491,11 +1515,11 @@
       <properties>
         <lz4-java.group>org.lz4</lz4-java.group>
         <lz4-java.version>1.7.1</lz4-java.version>
-        <scala.version>2.12.10</scala.version>
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.0.3</spark.version>
         <zstd-jni.version>1.4.4-3</zstd-jni.version>
-        <maven.plugin.silencer.version>1.6.0</maven.plugin.silencer.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
@@ -1512,11 +1536,11 @@
       <properties>
         <lz4-java.group>org.lz4</lz4-java.group>
         <lz4-java.version>1.7.1</lz4-java.version>
-        <scala.version>2.12.10</scala.version>
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.1.3</spark.version>
         <zstd-jni.version>1.4.8-1</zstd-jni.version>
-        <maven.plugin.silencer.version>1.6.0</maven.plugin.silencer.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
@@ -1533,10 +1557,11 @@
       <properties>
         <lz4-java.group>org.lz4</lz4-java.group>
         <lz4-java.version>1.7.1</lz4-java.version>
-        <scala.version>2.12.15</scala.version>
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.2.4</spark.version>
         <zstd-jni.version>1.5.0-4</zstd-jni.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
@@ -1553,10 +1578,11 @@
       <properties>
         <lz4-java.group>org.lz4</lz4-java.group>
         <lz4-java.version>1.8.0</lz4-java.version>
-        <scala.version>2.12.15</scala.version>
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.3.4</spark.version>
         <zstd-jni.version>1.5.2-1</zstd-jni.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
@@ -1573,10 +1599,11 @@
       <properties>
         <lz4-java.group>org.lz4</lz4-java.group>
         <lz4-java.version>1.8.0</lz4-java.version>
-        <scala.version>2.12.17</scala.version>
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.4.4</spark.version>
         <zstd-jni.version>1.5.2-5</zstd-jni.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
@@ -1597,6 +1624,7 @@
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.5.8</spark.version>
         <zstd-jni.version>1.5.5-4</zstd-jni.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
       </properties>
     </profile>
 
