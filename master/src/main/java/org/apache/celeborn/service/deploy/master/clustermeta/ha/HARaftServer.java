@@ -449,8 +449,9 @@ public class HARaftServer {
     // Build the Ratis SSLFactory from the dedicated `ratis` SSL module when it is explicitly
     // enabled, otherwise fall back to the client-facing `rpc_service` module. This decouples the
     // inter-master Ratis cert from the client-facing rpc_service cert while keeping existing
-    // (rpc_service-only) deployments byte-for-byte unchanged. This mirrors
-    // MasterClusterInfo.ratisSslModule (kept in sync as the single source of truth for the policy).
+    // (rpc_service-only) deployments byte-for-byte unchanged.
+    // MasterClusterInfo.ratisSslEnabled decides whether Ratis TLS is enabled at all; the selection
+    // below decides which module's certificate it presents.
     String sslModule =
         conf.sslEnabled(TransportModuleConstants.RATIS_MODULE)
             ? TransportModuleConstants.RATIS_MODULE

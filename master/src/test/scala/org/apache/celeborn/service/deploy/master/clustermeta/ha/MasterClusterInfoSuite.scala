@@ -29,33 +29,20 @@ class MasterClusterInfoSuite extends CelebornFunSuite {
   private val rpcServiceKey = sslEnabledKey(TransportModuleConstants.RPC_SERVICE_MODULE)
 
   test("ratis ssl is disabled when neither ratis nor rpc_service module is enabled") {
-    val conf = new CelebornConf()
-    assert(!MasterClusterInfo.ratisSslEnabled(conf))
-    // The module only matters when ssl is enabled, but it must still default to the
-    // legacy module so behavior is unchanged for existing deployments.
-    assert(MasterClusterInfo.ratisSslModule(conf) === TransportModuleConstants.RPC_SERVICE_MODULE)
+    assert(!MasterClusterInfo.ratisSslEnabled(new CelebornConf()))
   }
 
-  test("ratis ssl falls back to rpc_service when only rpc_service is enabled") {
+  test("ratis ssl stays enabled when only rpc_service is enabled") {
+    // Legacy deployments configure only rpc_service; they must keep securing Ratis as before.
     val conf = new CelebornConf()
     conf.set(rpcServiceKey, "true")
     assert(MasterClusterInfo.ratisSslEnabled(conf))
-    assert(MasterClusterInfo.ratisSslModule(conf) === TransportModuleConstants.RPC_SERVICE_MODULE)
   }
 
-  test("ratis ssl uses the dedicated ratis module when only ratis is enabled") {
+  test("ratis ssl is enabled by the dedicated ratis module alone") {
     val conf = new CelebornConf()
     conf.set(ratisKey, "true")
     assert(MasterClusterInfo.ratisSslEnabled(conf))
-    assert(MasterClusterInfo.ratisSslModule(conf) === TransportModuleConstants.RATIS_MODULE)
-  }
-
-  test("the dedicated ratis module takes precedence when both modules are enabled") {
-    val conf = new CelebornConf()
-    conf.set(ratisKey, "true")
-    conf.set(rpcServiceKey, "true")
-    assert(MasterClusterInfo.ratisSslEnabled(conf))
-    assert(MasterClusterInfo.ratisSslModule(conf) === TransportModuleConstants.RATIS_MODULE)
   }
 
   test("ratis ssl is enabled by the ratis module even when rpc_service is explicitly disabled") {
@@ -63,6 +50,5 @@ class MasterClusterInfoSuite extends CelebornFunSuite {
     conf.set(ratisKey, "true")
     conf.set(rpcServiceKey, "false")
     assert(MasterClusterInfo.ratisSslEnabled(conf))
-    assert(MasterClusterInfo.ratisSslModule(conf) === TransportModuleConstants.RATIS_MODULE)
   }
 }

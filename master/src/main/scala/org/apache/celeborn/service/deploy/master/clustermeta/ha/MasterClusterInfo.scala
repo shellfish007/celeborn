@@ -89,20 +89,6 @@ object MasterClusterInfo extends Logging {
     conf.sslEnabled(TransportModuleConstants.RPC_SERVICE_MODULE)
   }
 
-  /**
-   * The transport SSL module whose `celeborn.ssl.<module>.*` config should be used to build the
-   * Ratis SSLFactory. Prefer the dedicated `ratis` module when it is explicitly enabled; otherwise
-   * fall back to `rpc_service` so existing (rpc_service-only) deployments are byte-for-byte
-   * unchanged and continue to use the rpc_service cert for Ratis.
-   */
-  def ratisSslModule(conf: CelebornConf): String = {
-    if (conf.sslEnabled(TransportModuleConstants.RATIS_MODULE)) {
-      TransportModuleConstants.RATIS_MODULE
-    } else {
-      TransportModuleConstants.RPC_SERVICE_MODULE
-    }
-  }
-
   private def isLocalAddress(addr: InetAddress): Boolean = {
     if (addr.isAnyLocalAddress || addr.isLoopbackAddress) {
       return true
