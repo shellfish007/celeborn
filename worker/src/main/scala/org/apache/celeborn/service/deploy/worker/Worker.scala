@@ -486,8 +486,8 @@ private[celeborn] class Worker(
   // Unreleased partition location count when worker is restarting
   workerSource.addGauge(WorkerSource.UNRELEASED_PARTITION_LOCATION_COUNT) { () =>
     if (shutdown.get()) {
-      partitionLocationInfo.primaryPartitionLocations.size() +
-        partitionLocationInfo.replicaPartitionLocations.size()
+      partitionLocationCount(partitionLocationInfo.primaryPartitionLocations) +
+        partitionLocationCount(partitionLocationInfo.replicaPartitionLocations)
     } else {
       0
     }
@@ -508,6 +508,11 @@ private[celeborn] class Worker(
         workerSource.getCounterCount(WorkerSource.ACTIVE_CONNECTION_COUNT) >= activeConnectionMax
       case _ => false
     }
+  }
+
+  private def partitionLocationCount(
+      partitionLocations: WorkerPartitionLocationInfo#PartitionInfo): Int = {
+    partitionLocations.values().asScala.map(_.size()).sum
   }
 
   private def heartbeatToMaster(): Unit = {
