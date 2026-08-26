@@ -38,10 +38,6 @@ object MasterClusterInfo extends Logging {
   def loadHAConfig(conf: CelebornConf): MasterClusterInfo = {
     val localNodeIdOpt = conf.haMasterNodeId
     val clusterNodeIds = conf.haMasterNodeIds
-    // Inter-master Ratis TLS is decoupled from the client-facing rpc_service cert:
-    // it is enabled if either the dedicated `ratis` module or `rpc_service` has SSL on.
-    // This preserves backward compatibility - deployments that only configure
-    // rpc_service SSL continue to secure Ratis exactly as before.
     val sslEnabled = ratisSslEnabled(conf)
 
     val masterNodes = clusterNodeIds.map { nodeId =>
@@ -76,13 +72,8 @@ object MasterClusterInfo extends Logging {
   }
 
   /**
-   * Whether TLS should be enabled for the inter-master Ratis (Raft consensus) gRPC channel.
-   *
-   * Ratis TLS is decoupled from the client-facing `rpc_service` SSL module so operators can
-   * give Ratis a dedicated certificate/keystore (e.g. one carrying internal pod-FQDN SANs).
-   * To stay fully backward compatible, it is considered enabled when EITHER the dedicated
-   * `ratis` module OR the legacy `rpc_service` module has SSL enabled. Deployments that only
-   * configure `rpc_service` SSL therefore behave exactly as before.
+   * Whether TLS is enabled for the inter-master Ratis channel: true if either the dedicated
+   * `ratis` module or the legacy `rpc_service` module has SSL enabled.
    */
   def ratisSslEnabled(conf: CelebornConf): Boolean = {
     conf.sslEnabled(TransportModuleConstants.RATIS_MODULE) ||
