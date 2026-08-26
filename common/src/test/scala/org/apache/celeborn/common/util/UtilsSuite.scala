@@ -17,8 +17,10 @@
 
 package org.apache.celeborn.common.util
 
+import java.io.Closeable
 import java.util
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -136,6 +138,27 @@ class UtilsSuite extends CelebornFunSuite {
 
   test("splitPartitionLocationUniqueId") {
     assert((1, 1).equals(Utils.splitPartitionLocationUniqueId("1-1")))
+  }
+
+  test("splitShuffleKey") {
+    // plain appId without '-'
+    assert(("app0", 1).equals(Utils.splitShuffleKey("app0-1")))
+    // applicationId containing '-' (e.g. Spark application_<timestamp>_<id>)
+    assert(("application_1690000000000_0001", 7)
+      .equals(Utils.splitShuffleKey("application_1690000000000_0001-7")))
+    // round-trip with makeShuffleKey
+    val key = Utils.makeShuffleKey("application_1690000000000_0001", 42)
+    assert(("application_1690000000000_0001", 42).equals(Utils.splitShuffleKey(key)))
+  }
+
+  test("splitPartitionLocationUniqueId multiple segments") {
+    // partitionId is an Int and never contains '-'; only the trailing epoch is sliced off.
+    assert((123, 5).equals(Utils.splitPartitionLocationUniqueId("123-5")))
+  }
+
+  test("splitAttemptKey") {
+    assert((0, 0).equals(Utils.splitAttemptKey("0-0")))
+    assert((12, 34).equals(Utils.splitAttemptKey("12-34")))
   }
 
   test("bytesToInt") {
@@ -303,5 +326,36 @@ class UtilsSuite extends CelebornFunSuite {
       celebornConf.identityProviderClass,
       celebornConf)
     assert(testInstance.isInstanceOf[DefaultIdentityProvider])
+  }
+
+  test("tryWithResources should evaluate the resource expression once and close the resource given to the function") {
+    val evaluations = new AtomicInteger(0)
+
+    class Resource extends Closeable {
+      var closed: Boolean = false
+      override def close(): Unit = closed = true
+    }
+
+    val received = Utils.tryWithResources {
+      evaluations.incrementAndGet()
+      new Resource
+    }(res => res)
+
+    assert(evaluations.get() == 1)
+    assert(received.closed)
+
+    var thrownReceived: Resource = null
+    intercept[RuntimeException] {
+      Utils.tryWithResources {
+        evaluations.incrementAndGet()
+        new Resource
+      } { res =>
+        thrownReceived = res
+        throw new RuntimeException("func failed")
+      }
+    }
+    assert(evaluations.get() == 2)
+    assert(thrownReceived.closed)
+    assert(thrownReceived ne received)
   }
 }

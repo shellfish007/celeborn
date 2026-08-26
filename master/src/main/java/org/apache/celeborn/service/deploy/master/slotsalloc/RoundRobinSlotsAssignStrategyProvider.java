@@ -15,15 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.celeborn.cli.master
+package org.apache.celeborn.service.deploy.master.slotsalloc;
 
-import picocli.CommandLine.Option
+import org.apache.celeborn.common.CelebornConf;
+import org.apache.celeborn.common.protocol.SlotsAssignPolicy;
 
-final class ReviseLostShuffleOptions {
+public final class RoundRobinSlotsAssignStrategyProvider implements SlotsAssignStrategyProvider {
 
-  @Option(
-    names = Array("--shuffleIds"),
-    description = Array("The shuffle ids to manipulate."))
-  private[master] var shuffleIds: String = _
+  @Override
+  public String getName() {
+    return SlotsAssignPolicy.ROUNDROBIN.name();
+  }
 
+  @Override
+  public SlotsAssignStrategy create(CelebornConf conf) {
+    return new RoundRobinSlotsAssignStrategy();
+  }
 }
