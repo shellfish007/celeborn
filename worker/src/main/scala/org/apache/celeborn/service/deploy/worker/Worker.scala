@@ -754,8 +754,7 @@ private[celeborn] class Worker(
     ResourceConsumption]): Unit = {
     // Remove application top resource consumption gauges to refresh top resource consumption metrics.
     removeAppResourceConsumption(topApplicationUserIdentifiers.keySet().asScala)
-    // Top resource consumption is determined by
-    // diskBytesWritten+hdfsBytesWritten+s3BytesWritten+ossBytesWritten.
+    // Top resource consumption is determined by total bytes written across all storage types.
     userResourceConsumptions.asScala.filter { case (_, resourceConsumption) =>
       CollectionUtils.isNotEmpty(resourceConsumption.subResourceConsumptions)
     }.flatMap { case (userIdentifier, resourceConsumption) =>
