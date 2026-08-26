@@ -704,6 +704,8 @@ message PbResourceConsumption {
   map<string, PbResourceConsumption> subResourceConsumptions = 5;
   int64 s3BytesWritten = 6;
   int64 s3FileCount = 7;
+  int64 ossBytesWritten = 8;
+  int64 ossFileCount = 9;
 }
 
 // deprecated

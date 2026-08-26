@@ -223,6 +223,8 @@ message ResourceConsumption {
   map<string, ResourceConsumption> subResourceConsumption = 5;
   int64 s3BytesWritten = 6;
   int64 s3FileCount = 7;
+  int64 ossBytesWritten = 8;
+  int64 ossFileCount = 9;
 }
 
 enum Status {

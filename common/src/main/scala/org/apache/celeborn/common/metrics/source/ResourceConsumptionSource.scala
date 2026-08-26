@@ -37,4 +37,8 @@ object ResourceConsumptionSource {
   val S3_FILE_COUNT = "s3FileCount"
 
   val S3_BYTES_WRITTEN = "s3BytesWritten"
+
+  val OSS_FILE_COUNT = "ossFileCount"
+
+  val OSS_BYTES_WRITTEN = "ossBytesWritten"
 }

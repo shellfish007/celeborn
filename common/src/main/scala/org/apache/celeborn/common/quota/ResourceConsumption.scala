@@ -30,7 +30,9 @@ case class ResourceConsumption(
     hdfsFileCount: Long,
     var subResourceConsumptions: util.Map[String, ResourceConsumption] = null,
     s3BytesWritten: Long = 0,
-    s3FileCount: Long = 0) {
+    s3FileCount: Long = 0,
+    ossBytesWritten: Long = 0,
+    ossFileCount: Long = 0) {
 
   def withSubResourceConsumptions(
       resourceConsumptions: util.Map[String, ResourceConsumption]): ResourceConsumption = {
@@ -45,7 +47,9 @@ case class ResourceConsumption(
       hdfsBytesWritten + other.hdfsBytesWritten,
       hdfsFileCount + other.hdfsFileCount,
       s3BytesWritten = s3BytesWritten + other.s3BytesWritten,
-      s3FileCount = s3FileCount + other.s3FileCount)
+      s3FileCount = s3FileCount + other.s3FileCount,
+      ossBytesWritten = ossBytesWritten + other.ossBytesWritten,
+      ossFileCount = ossFileCount + other.ossFileCount)
   }
 
   def subtract(other: ResourceConsumption): ResourceConsumption = {
@@ -55,7 +59,9 @@ case class ResourceConsumption(
       hdfsBytesWritten - other.hdfsBytesWritten,
       hdfsFileCount - other.hdfsFileCount,
       s3BytesWritten = s3BytesWritten - other.s3BytesWritten,
-      s3FileCount = s3FileCount - other.s3FileCount)
+      s3FileCount = s3FileCount - other.s3FileCount,
+      ossBytesWritten = ossBytesWritten - other.ossBytesWritten,
+      ossFileCount = ossFileCount - other.ossFileCount)
   }
 
   def addSubResourceConsumptions(otherSubResourceConsumptions: Map[
@@ -97,6 +103,8 @@ case class ResourceConsumption(
       s" hdfsFileCount: $hdfsFileCount," +
       s" s3BytesWritten: ${Utils.bytesToString(s3BytesWritten)}," +
       s" s3FileCount: $s3FileCount," +
+      s" ossBytesWritten: ${Utils.bytesToString(ossBytesWritten)}," +
+      s" ossFileCount: $ossFileCount," +
       s" subResourceConsumptions: $subResourceConsumptionString)"
   }
 
@@ -106,6 +114,8 @@ case class ResourceConsumption(
       s" hdfsBytesWritten: ${Utils.bytesToString(hdfsBytesWritten)}," +
       s" hdfsFileCount: $hdfsFileCount," +
       s" s3BytesWritten: ${Utils.bytesToString(s3BytesWritten)}," +
-      s" s3FileCount: $s3FileCount)"
+      s" s3FileCount: $s3FileCount," +
+      s" ossBytesWritten: ${Utils.bytesToString(ossBytesWritten)}," +
+      s" ossFileCount: $ossFileCount)"
   }
 }

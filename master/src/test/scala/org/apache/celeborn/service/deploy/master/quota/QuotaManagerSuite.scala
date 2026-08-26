@@ -223,7 +223,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 25.0 GiB, " +
         "hdfsFileCount: 20, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: " +
         "Quota[" +
         "diskBytesWritten=100.0 GiB, " +
@@ -249,7 +251,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 25.0 GiB, " +
         "hdfsFileCount: 20, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: Quota[" +
         "diskBytesWritten=100.0 GiB, " +
         "diskFileCount=10000, " +
@@ -264,7 +268,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 5.0 GiB, " +
         "hdfsFileCount: 20, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: " +
         "Quota[" +
         "diskBytesWritten=50.0 GiB, " +
@@ -317,7 +323,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 3.0 GiB, " +
         "hdfsFileCount: 20, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: " +
         "Quota[diskBytesWritten=20.0 GiB, " +
         "diskFileCount=9223372036854775807, " +
@@ -531,7 +539,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 25.0 GiB, " +
         "hdfsFileCount: 20, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: " +
         "Quota[" +
         "diskBytesWritten=100.0 GiB, " +
@@ -549,7 +559,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 0.0 B, " +
         "hdfsFileCount: 0, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: " +
         "Quota[" +
         "diskBytesWritten=10.0 GiB, " +
@@ -657,7 +669,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 0.0 B, " +
         "hdfsFileCount: 0, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: Quota[" +
         "diskBytesWritten=100.0 GiB, " +
         "diskFileCount=10000, " +
@@ -673,7 +687,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 0.0 B, " +
         "hdfsFileCount: 0, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: Quota[" +
         "diskBytesWritten=150.0 GiB, " +
         "diskFileCount=1500, " +
@@ -689,7 +705,9 @@ class QuotaManagerSuite extends CelebornFunSuite
         "hdfsBytesWritten: 0.0 B, " +
         "hdfsFileCount: 0, " +
         "s3BytesWritten: 0.0 B, " +
-        "s3FileCount: 0), " +
+        "s3FileCount: 0, " +
+        "ossBytesWritten: 0.0 B, " +
+        "ossFileCount: 0), " +
         "Threshold: Quota[" +
         "diskBytesWritten=100.0 GiB, " +
         "diskFileCount=10000, " +
