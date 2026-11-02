@@ -167,6 +167,11 @@ public class TransportClientFactory implements Closeable {
           Thread.currentThread().interrupt();
           throw interruptedException;
         }
+        if (Throwables.getCausalChain(e).stream()
+            .anyMatch(MasterNotLeaderException.class::isInstance)) {
+          // A follower's redirect does not change on retry; fail now so the caller follows it.
+          throw e;
+        }
         numTries++;
         logger.warn(
             "Retry create client, times {}/{} with error: {}",

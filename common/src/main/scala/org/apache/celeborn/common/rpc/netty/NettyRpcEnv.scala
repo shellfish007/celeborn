@@ -123,6 +123,18 @@ class NettyRpcEnv(
     }
   }
 
+  /**
+   * Like [[removeOutbox]], but leaves an Outbox that is still connecting: a channel closed during
+   * its bootstrap (e.g. a follower master rejecting registration) must not fail the pending
+   * messages with OutboxStoppedException before the connect task fails them with the real cause.
+   */
+  private[netty] def removeOutboxUnlessConnecting(address: RpcAddress): Unit = {
+    val outbox = outboxes.get(address)
+    if (outbox == null || !outbox.isConnecting) {
+      removeOutbox(address)
+    }
+  }
+
   private def createServerBootstraps(): java.util.List[TransportServerBootstrap] = {
     val bootstrapOpt = securityContext.flatMap(_.serverSaslContext.map { serverSaslContext =>
       if (serverSaslContext.addRegistrationBootstrap) {
@@ -687,7 +699,7 @@ private[celeborn] class NettyRpcHandler(
     val addr = client.getChannel.remoteAddress().asInstanceOf[InetSocketAddress]
     if (addr != null) {
       val clientAddr = RpcAddress(addr.getHostString, addr.getPort)
-      nettyEnv.removeOutbox(clientAddr)
+      nettyEnv.removeOutboxUnlessConnecting(clientAddr)
       dispatcher.postToAll(RemoteProcessDisconnected(clientAddr))
       val remoteEnvAddress = remoteAddresses.remove(clientAddr)
       // If the remove RpcEnv listens to some address, we should also  fire a

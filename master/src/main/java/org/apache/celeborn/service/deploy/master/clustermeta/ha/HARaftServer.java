@@ -639,7 +639,8 @@ public class HARaftServer {
         if (leaderNodeId != null && !leaderNodeId.isEmpty()) {
           String clientAddress =
               roleInfoProto.getFollowerInfo().getLeaderInfo().getId().getClientAddress();
-          leaderPeerRpcEndpoint = Utils.addressToIpHostAddressPair(clientAddress);
+          leaderPeerRpcEndpoint =
+              leaderClientEndpointPair(conf, leaderNodeId.toStringUtf8(), clientAddress);
           // We use admin address to host the internal rpc address. It is the rpc address when the
           // internal port is disabled, and unlike the client address it is never the client host.
           String adminAddress =
@@ -660,6 +661,20 @@ public class HARaftServer {
           e);
       setServerRole(null, null, null);
     }
+  }
+
+  /**
+   * The (ip, host) pair suggested to clients as the leader's address. A leader with an explicit
+   * client.host advertises an externally-reachable hostname, such as a gateway hostname routed by
+   * SNI, so it is suggested as is: resolving it to an IP would drop the name the route depends on.
+   */
+  @VisibleForTesting
+  static Tuple2<String, String> leaderClientEndpointPair(
+      CelebornConf conf, String leaderNodeId, String clientAddress) {
+    if (conf.haMasterClientHostConfigured(leaderNodeId)) {
+      return Tuple2.apply(clientAddress, clientAddress);
+    }
+    return Utils.addressToIpHostAddressPair(clientAddress);
   }
 
   /** Set the current server role and the leader peer rpc endpoint. */
