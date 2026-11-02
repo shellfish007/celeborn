@@ -24,11 +24,13 @@ class HARaftServerLeaderEndpointSuite extends CelebornFunSuite {
 
   private val prefix = "celeborn.master.ha.node"
 
-  test("leader with an explicit client host is suggested by that hostname, unresolved") {
+  test("leader with an explicit client host is suggested from configuration, unresolved") {
     val conf = new CelebornConf()
       .set(s"$prefix.1.host", "clb-1")
+      .set(s"$prefix.1.port", "9097")
       .set(s"$prefix.1.client.host", "clb-1.gateway.invalid")
-    val pair = HARaftServer.leaderClientEndpointPair(conf, "1", "clb-1.gateway.invalid:9097")
+    // The Raft peer metadata may still carry the client address the group started with.
+    val pair = HARaftServer.leaderClientEndpointPair(conf, "1", "127.0.0.1:9097")
     assert(pair._1 === "clb-1.gateway.invalid:9097")
     assert(pair._2 === "clb-1.gateway.invalid:9097")
   }
@@ -36,6 +38,18 @@ class HARaftServerLeaderEndpointSuite extends CelebornFunSuite {
   test("leader without a client host keeps the resolved (ip, host) pair") {
     val conf = new CelebornConf().set(s"$prefix.1.host", "localhost")
     val pair = HARaftServer.leaderClientEndpointPair(conf, "1", "localhost:9097")
+    assert(pair._1 === "127.0.0.1:9097")
+    assert(pair._2 === "localhost:9097")
+  }
+
+  test("internal endpoint uses the admin address when present") {
+    val pair = HARaftServer.leaderInternalEndpointPair("localhost:8097", "localhost:9097")
+    assert(pair._1 === "127.0.0.1:8097")
+    assert(pair._2 === "localhost:8097")
+  }
+
+  test("internal endpoint falls back to the client address when the admin address is absent") {
+    val pair = HARaftServer.leaderInternalEndpointPair("", "localhost:9097")
     assert(pair._1 === "127.0.0.1:9097")
     assert(pair._2 === "localhost:9097")
   }
