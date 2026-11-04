@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.apache.celeborn.common.CelebornConf;
+import org.apache.celeborn.common.client.MasterNotLeaderException;
 import org.apache.celeborn.common.network.buffer.NioManagedBuffer;
 import org.apache.celeborn.common.network.client.RpcResponseCallback;
 import org.apache.celeborn.common.network.client.TransportClient;
@@ -368,5 +369,23 @@ public class TransportClientFactorySuiteJ {
     } finally {
       Thread.interrupted();
     }
+  }
+
+  @Test
+  public void doNotRetryCreateClientWhenMasterIsNotLeader() throws Exception {
+    TransportClientFactory factory = Mockito.spy(context.createClientFactory());
+    MasterNotLeaderException notLeader =
+        new MasterNotLeaderException("follower:9097", "leader:9097", null);
+    Mockito.doThrow(new RuntimeException(notLeader))
+        .when(factory)
+        .createClient(anyString(), anyInt(), anyInt(), any());
+
+    RuntimeException thrown =
+        assertThrows(
+            RuntimeException.class,
+            () -> factory.retryCreateClient("xxx", 10, 1, TransportFrameDecoder::new));
+
+    assertSame(notLeader, thrown.getCause());
+    Mockito.verify(factory, Mockito.times(1)).createClient(anyString(), anyInt(), anyInt(), any());
   }
 }
