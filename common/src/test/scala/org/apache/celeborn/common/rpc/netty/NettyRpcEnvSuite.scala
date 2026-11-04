@@ -21,13 +21,17 @@ import java.util.concurrent.ExecutionException
 
 import scala.concurrent.duration._
 
+import com.google.common.base.Throwables
 import org.mockito.Mockito.mock
 import org.scalatest.concurrent.{Signaler, ThreadSignaler, TimeLimits}
 
 import org.apache.celeborn.common.CelebornConf
+import org.apache.celeborn.common.client.MasterNotLeaderException
 import org.apache.celeborn.common.exception.CelebornException
 import org.apache.celeborn.common.metrics.source.Role
 import org.apache.celeborn.common.network.client.TransportClient
+import org.apache.celeborn.common.network.sasl.SecretRegistry
+import org.apache.celeborn.common.network.sasl.registration.RegistrationInfo
 import org.apache.celeborn.common.protocol.TransportModuleConstants
 import org.apache.celeborn.common.rpc._
 
@@ -209,4 +213,65 @@ class NettyRpcEnvSuite extends RpcEnvSuite with TimeLimits {
     }
   }
 
+  test("registration rejected by a follower master fails with the redirect") {
+    val conf = createCelebornConf()
+    // A follower master rejects application registration with MasterNotLeaderException.
+    val followerRegistry = new SecretRegistry {
+      override def register(appId: String, secret: String): Unit = {}
+      override def unregister(appId: String): Unit = {}
+      override def isRegistered(appId: String): Boolean = false
+      override def getSecretKey(appId: String): String = null
+      override def registrationEnabled(): Boolean =
+        throw new RuntimeException(
+          new MasterNotLeaderException("follower:9097", "leader:9097", null))
+    }
+    val serverEnv = RpcEnv.create(
+      "follower",
+      transportModule,
+      "localhost",
+      0,
+      conf,
+      Role.MASTER,
+      Some(new RpcSecurityContextBuilder()
+        .withServerSaslContext(new ServerSaslContextBuilder()
+          .withAddRegistrationBootstrap(true)
+          .withSecretRegistry(followerRegistry)
+          .build())
+        .build()))
+    val clientEnv = RpcEnv.create(
+      "app",
+      transportModule,
+      "localhost",
+      0,
+      conf,
+      Role.CLIENT,
+      Some(new RpcSecurityContextBuilder()
+        .withClientSaslContext(new ClientSaslContextBuilder()
+          .withAddRegistrationBootstrap(true)
+          .withAppId("app")
+          .withSaslUser("app")
+          .withSaslPassword("secret")
+          .withRegistrationInfo(new RegistrationInfo())
+          .build())
+        .build()))
+    try {
+      val e = failAfter(30.seconds) {
+        intercept[Exception] {
+          clientEnv.setupEndpointRef(serverEnv.address, RpcEndpointVerifier.NAME)
+        }
+      }
+      val causes = Throwables.getCausalChain(e)
+      assert(
+        causes.stream().anyMatch(_.isInstanceOf[MasterNotLeaderException]),
+        Throwables.getStackTraceAsString(e))
+      assert(
+        !causes.stream().anyMatch(_.isInstanceOf[OutboxStoppedException]),
+        Throwables.getStackTraceAsString(e))
+    } finally {
+      clientEnv.shutdown()
+      clientEnv.awaitTermination()
+      serverEnv.shutdown()
+      serverEnv.awaitTermination()
+    }
+  }
 }
