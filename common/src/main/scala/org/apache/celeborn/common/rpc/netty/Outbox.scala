@@ -247,9 +247,6 @@ private[celeborn] class Outbox(nettyEnv: NettyRpcEnv, val address: RpcAddress) {
     assert(messages.isEmpty)
   }
 
-  /** Whether a connect task is in flight; it reports its own failure, with the real cause. */
-  def isConnecting: Boolean = synchronized { connectFuture != null }
-
   private def closeClient(): Unit = synchronized {
     // Just set client to null. Don't close it in order to reuse the connection.
     client = null
